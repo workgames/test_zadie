@@ -42,10 +42,11 @@ class SiteController extends Controller {
 
         if ($model->load(Yii::$app->request->post())) {
             $capcha = $this->get_capcha();
-            //var_dump($capcha);
-            //exit;
-            $data = $this->get_dataIin($capcha[1], $capcha[0], $model->iin);
 
+            $data = $this->get_dataIin($capcha[1], $capcha[0], $model->iin);
+            if (is_null($data))
+                throw new \yii\web\NotFoundHttpException('Сервис для получения данных об ИИН/БИН налогоплатильщика временно недоступен!');
+                
             $parser = new LoadDataBdParser($data, $model->iin);
             $data = $parser->load();
 
@@ -69,22 +70,21 @@ class SiteController extends Controller {
                     'model' => $model
         ]);
     }
-    
+
     public function actionView_cart() {
-        $model_iin = AInn::findOne((int)$_GET['id']);
-        
+        $model_iin = AInn::findOne((int) $_GET['id']);
+
         if (!$model_iin)
             throw new \yii\web\NotFoundHttpException('Данная карточка не найдена!');
-        
-        $model_ATaxOrgInfo = ATaxOrgInfo::findOne(['inn_id'=>$model_iin->id]);
-        $model_ATaxPayerInfo = ATaxPayerInfo::findAll(['inn_id'=>$model_iin->id]);
-        
-        return $this->render('_view_cart',[
-            'model_iin' => $model_iin,
-            'model_ATaxOrgInfo' => $model_ATaxOrgInfo,
-            'model_ATaxPayerInfo' => $model_ATaxPayerInfo,
+
+        $model_ATaxOrgInfo = ATaxOrgInfo::findOne(['inn_id' => $model_iin->id]);
+        $model_ATaxPayerInfo = ATaxPayerInfo::findAll(['inn_id' => $model_iin->id]);
+
+        return $this->render('_view_cart', [
+                    'model_iin' => $model_iin,
+                    'model_ATaxOrgInfo' => $model_ATaxOrgInfo,
+                    'model_ATaxPayerInfo' => $model_ATaxPayerInfo,
         ]);
-        
     }
 
     public function actionList() {
